@@ -98,6 +98,12 @@ using Data = variant<int, float, string>;
 
 void printData(const Data& d);
 
+DWORD WINAPI MythreadFunction(LPVOID lpParameter) {
+    cout << "Thread running....ID: " << GetCurrentThreadId() << endl;
+    Sleep(1000);
+    return 0;
+}
+
 int main(){
 
     //Hello World and Basic I/O
@@ -573,6 +579,158 @@ int main(){
     cout << "Process opened successfuly (handle: " << hProcess << ")" << endl;
 
     CloseHandle(hProcess);
+    */
+
+    //Example 10: Creating a Thread with CreateThread
+    /*
+    HANDLE hThread;
+    DWORD threadId;
+
+    hThread = CreateThread(NULL, 0, MythreadFunction, NULL, 0, &threadId);
+
+    if (hThread == NULL) {
+        cerr << "CreateThread failed" << GetLastError() << endl;
+        return 1;
+    }
+
+    cout << "Thread created ID: " << threadId << endl;
+
+    WaitForSingleObject(hThread, INFINITE);
+    CloseHandle(hThread);
+    */
+
+    //Example 11: Reading Memory from Another Process
+    /*
+    DWORD pId;
+    cout << "Enter a PID: " << endl;
+    cin >> pId;
+
+    HANDLE hProcess = OpenProcess(PROCESS_VM_READ | PROCESS_QUERY_INFORMATION, FALSE, pId);
+
+    if (!hProcess) {
+        cerr << "Unable to open process" << GetLastError() << endl;
+        return 1;
+    }
+
+    LPCVOID address = (LPCVOID)0x7FFDF000;
+    char buffer[32] = {0};
+    SIZE_T bytesRead;
+
+    if (ReadProcessMemory(hProcess, address, buffer, sizeof(buffer), &bytesRead)) {
+        cout << "Data Read: " << bytesRead << "bytes: " << buffer << endl;
+    } else {
+        cerr << "Unable to read process memory" << GetLastError() << endl;
+    }
+
+    CloseHandle(hProcess);
+    */
+
+    //Example 12: Allocating Memory in Another Process
+    /*
+    DWORD pId;
+    cout << "Enter a PID: " << endl;
+    cin >> pId;
+
+    HANDLE hProcess = OpenProcess(PROCESS_VM_READ | PROCESS_QUERY_INFORMATION, FALSE, pId);
+
+    if (!hProcess) {
+        cerr << "Unable to open process" << GetLastError() << endl;
+        return 1;
+    }
+
+    LPVOID remoteMemory = VirtualAllocEx(
+        hProcess,
+        NULL,
+        1024,
+        MEM_COMMIT | MEM_RESERVE,
+        PAGE_READWRITE
+    );
+
+    if (!remoteMemory) {
+        std::cerr << "VirtualAllocEx failed. Error: " << GetLastError() << std::endl;
+        CloseHandle(hProcess);
+        return 1;
+    }
+
+    std::cout << "Memory allocated at remote address: " << remoteMemory << std::endl;
+
+    CloseHandle(hProcess);
+    */
+
+    //Example 13: Writing to Another Process's Memory
+    /*
+    DWORD pid;
+    std::cout << "Enter target PID: ";
+    std::cin >> pid;
+
+    HANDLE hProcess = OpenProcess(
+        PROCESS_VM_OPERATION | PROCESS_VM_WRITE | PROCESS_VM_READ,
+        FALSE,
+        pid
+    );
+
+    if (!hProcess) {
+        std::cerr << "OpenProcess failed. Error: " << GetLastError() << std::endl;
+        return 1;
+    }
+
+    // Allocate memory
+    LPVOID remoteAddr = VirtualAllocEx(hProcess, NULL, 256, MEM_COMMIT, PAGE_READWRITE);
+    const char* message = "Hello from C++ to your memory!";
+
+    SIZE_T bytesWritten;
+    if (WriteProcessMemory(hProcess, remoteAddr, message, strlen(message) + 1, &bytesWritten)) {
+        std::cout << "Successfully wrote " << bytesWritten << " bytes to remote process." << std::endl;
+    } else {
+        std::cerr << "WriteProcessMemory failed. Error: " << GetLastError() << std::endl;
+    }
+
+    CloseHandle(hProcess);
+    */
+
+    //Example 14: Changing Memory Protection with VirtualProtect
+    /*
+    //alocate memory
+    LPVOID mem = VirtualAlloc(NULL, 1024, MEM_COMMIT, PAGE_READWRITE);
+    if (!mem) {
+        std::cerr << "VirtualAlloc failed. Error: " << GetLastError() << std::endl;
+        return 1;
+    }
+
+    // Write something
+    strcpy_s((char*)mem, 1024, "Testing memory protection.");
+
+    // Change to read-only
+    DWORD oldProtect;
+    if (VirtualProtect(mem, 1024, PAGE_READONLY, &oldProtect)) {
+        std::cout << "Memory protection changed to read-only." << std::endl;
+    } else {
+        std::cerr << "VirtualProtect failed. Error: " << GetLastError() << std::endl;
+    }
+
+    // Free memory
+    VirtualFree(mem, 0, MEM_RELEASE);
+    */
+
+    //Example 15: Getting the Address of an Exported Function in a DLL
+    /*
+    HMODULE hKernel32 = LoadLibraryA("kernel32.dll");
+    if (!hKernel32) {
+        std::cerr << "Failed to load kernel32.dll" << std::endl;
+        return 1;
+    }
+
+    // Get address of 'Beep' function from kernel32.dll
+    FARPROC funcAddr = GetProcAddress(hKernel32, "Beep");
+
+    if (funcAddr) {
+        std::cout << "'Beep' function address: " << funcAddr << std::endl;
+    } else {
+        std::cerr << "GetProcAddress failed. Error: " << GetLastError() << std::endl;
+    }
+
+    // Always free loaded libraries (if dynamically loaded)
+    FreeLibrary(hKernel32);]
     */
 
     return 0;
